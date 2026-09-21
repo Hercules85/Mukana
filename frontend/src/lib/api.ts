@@ -1,18 +1,14 @@
-// Tiny fetch wrapper. In the browser we hit the same origin and rely on the
-// Next.js rewrite /api/backend/* -> backend. On the server we call the backend directly.
-const PREFIX = (() => {
-  if (typeof window !== 'undefined') return '/api/backend';
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-})();
+// Tiny fetch wrapper — all API routes are same-origin Next.js routes (/api/*).
+const BASE = '/api';
 
 export async function apiGet<T>(path: string): Promise<T> {
-  const r = await fetch(`${PREFIX}/api${path}`, { cache: 'no-store' });
+  const r = await fetch(`${BASE}${path}`, { cache: 'no-store' });
   if (!r.ok) throw new Error(`GET ${path} ${r.status}`);
   return r.json();
 }
 
 export async function apiPost<T>(path: string, body: unknown): Promise<T> {
-  const r = await fetch(`${PREFIX}/api${path}`, {
+  const r = await fetch(`${BASE}${path}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
