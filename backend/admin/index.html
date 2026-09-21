@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mukana · Admin</title>
+<style>
+  :root { --ink:#1a1a1a; --paper:#fbf7f1; --coral:#e85a4f; --line:#e8dfd1; --warm:#f6ece1; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"PingFang HK","Noto Sans HK",system-ui,sans-serif; background:var(--paper); color:var(--ink); }
+  header { background:#fff; border-bottom:1px solid var(--line); padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; position:sticky; top:0; }
+  .brand { font-weight:800; letter-spacing:.08em; }
+  .brand span { color:var(--coral); }
+  main { max-width:1100px; margin:0 auto; padding:20px; }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:18px; }
+  .stat { background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px; }
+  .stat b { display:block; font-size:22px; }
+  .stat small { color:#777; }
+  .bar { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
+  select, button, input { font:inherit; }
+  select, input { padding:8px 10px; border:1px solid var(--line); border-radius:10px; background:#fff; }
+  button { padding:8px 14px; border:0; border-radius:999px; background:var(--ink); color:#fff; cursor:pointer; }
+  button.coral { background:var(--coral); }
+  button.ghost { background:transparent; color:var(--ink); border:1px solid var(--line); }
+  table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  th, td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--line); font-size:13px; vertical-align:top; }
+  th { background:var(--warm); font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:#555; }
+  .pill { display:inline-block; padding:2px 10px; border-radius:999px; font-size:11px; font-weight:600; }
+  .pending { background:#fff4e0; color:#9a6b00; }
+  .ready { background:#e7f0ff; color:#1d5cc4; }
+  .picked_up { background:#e6f6e9; color:#1c7a34; }
+  .cancelled { background:#fdeaea; color:#b3261e; }
+  .code { font-weight:800; letter-spacing:.12em; color:var(--coral); }
+  .muted { color:#888; }
+  .row-actions { display:flex; gap:6px; flex-wrap:wrap; }
+  .row-actions button { padding:4px 10px; font-size:12px; }
+  .items { margin:4px 0 0; padding-left:16px; }
+  #lock { max-width:380px; margin:80px auto; text-align:center; background:#fff; border:1px solid var(--line); border-radius:16px; padding:28px; }
+  #lock input { width:100%; margin:10px 0; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">MUKANA <span>·</span> Admin</div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <select id="statusFilter">
+      <option value="">全部狀態 / All</option>
+      <option value="pending">待取貨 pending</option>
+      <option value="ready">已備好 ready</option>
+      <option value="picked_up">已取貨 picked_up</option>
+      <option value="cancelled">已取消 cancelled</option>
+    </select>
+    <select id="storeFilter">
+      <option value="">所有門市 / All stores</option>
+      <option value="dpark">D·PARK</option>
+      <option value="apm">APM</option>
+    </select>
+    <button class="ghost" id="refresh">重新整理</button>
+  </div>
+</header>
+
+<div id="lock">
+  <h2>管理員登入</h2>
+  <p class="muted">請輸入 Admin Token（預設：<code>mukana-dev-token</code>）</p>
+  <input id="token" type="password" placeholder="Admin token" />
+  <button class="coral" id="unlock" style="width:100%">登入</button>
+</div>
+
+<main id="app" style="display:none">
+  <div class="stats" id="stats"></div>
+  <table>
+    <thead>
+      <tr>
+        <th>取貨編號</th><th>門市</th><th>取貨時間</th><th>顧客</th><th>商品</th><th>金額</th><th>狀態</th><th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+</main>
+
+<script>
+const API = location.origin.includes(':3000') ? 'http://localhost:4000' : '';
+const $ = (s) => document.querySelector(s);
+let token = localStorage.getItem('mukana.admin.token') || '';
+
+function headers() { return { 'x-admin-token': token, 'content-type': 'application/json' }; }
+
+async function load() {
+  const status = $('#statusFilter').value, store = $('#storeFilter').value;
+  const qs = new URLSearchParams();
+  if (status) qs.set('status', status);
+  if (store) qs.set('store', store);
+
+  const [orders, stats] = await Promise.all([
+    fetch(`${API}/api/admin/orders?${qs}`, { headers: headers() }).then(r => r.ok ? r.json() : Promise.reject(r.status)),
+    fetch(`${API}/api/admin/stats`, { headers: headers() }).then(r => r.json()),
+  ]);
+
+  $('#stats').innerHTML = [
+    ['總訂單', stats.total_orders ?? 0],
+    ['待取貨', stats.pending ?? 0],
+    ['已備好', stats.ready ?? 0],
+    ['已取貨', stats.picked_up ?? 0],
+    ['已收款 HK$', stats.revenue_hkd ?? 0],
+  ].map(([label, v]) => `<div class="stat"><b>${v ?? 0}</b><small>${label}</small></div>`).join('');
+
+  $('#rows').innerHTML = orders.map(o => `
+    <tr>
+      <td><span class="code">${o.code}</span><br><small class="muted">${o.created_at?.slice(0,16)?.replace('T',' ')}</small></td>
+      <td>${o.store_id === 'dpark' ? 'D·PARK' : 'APM'}</td>
+      <td>${o.pickup_date}<br><small class="muted">${o.pickup_window}</small></td>
+      <td>${o.customer_name}<br><small class="muted">${o.customer_phone}<br>${o.customer_email}</small>${o.customer_note ? `<br><small>${o.customer_note}</small>` : ''}</td>
+      <td><ul class="items">${o.items.map(i => `<li>${i.name_zh || i.name_en} × ${i.qty}</li>`).join('')}</ul></td>
+      <td>HK$${o.total_hkd}</td>
+      <td><span class="pill ${o.status}">${o.status}</span></td>
+      <td><div class="row-actions">
+        ${o.status === 'pending' ? `<button onclick="setStatus(${o.id},'ready')">備好貨</button>` : ''}
+        ${o.status === 'ready' ? `<button class="coral" onclick="setStatus(${o.id},'picked_up')">已取貨</button>` : ''}
+        ${o.status !== 'cancelled' && o.status !== 'picked_up' ? `<button class="ghost" onclick="setStatus(${o.id},'cancelled')">取消</button>` : ''}
+      </div></td>
+    </tr>`).join('');
+}
+
+window.setStatus = async function (id, status) {
+  await fetch(`${API}/api/admin/orders/${id}`, {
+    method: 'PATCH', headers: headers(), body: JSON.stringify({ status }),
+  });
+  load();
+};
+
+function unlock() {
+  token = $('#token').value.trim();
+  localStorage.setItem('mukana.admin.token', token);
+  fetch(`${API}/api/admin/stats`, { headers: headers() })
+    .then(r => { if (!r.ok) throw 0; return r.json(); })
+    .then(() => { $('#lock').style.display = 'none'; $('#app').style.display = 'block'; load(); })
+    .catch(() => alert('Token 無效'));
+}
+
+$('#unlock').addEventListener('click', unlock);
+$('#token').addEventListener('keydown', e => { if (e.key === 'Enter') unlock(); });
+$('#refresh').addEventListener('click', load);
+$('#statusFilter').addEventListener('change', load);
+$('#storeFilter').addEventListener('change', load);
+
+if (token) {
+  fetch(`${API}/api/admin/stats`, { headers: headers() })
+    .then(r => { if (r.ok) { $('#lock').style.display = 'none'; $('#app').style.display = 'block'; load(); } })
+    .catch(() => {});
+}
+</script>
+</body>
+</html>

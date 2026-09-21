@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html, body {
+  background: theme('colors.mukana.paper');
+  color: theme('colors.mukana.ink');
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: theme('colors.mukana.coral');
+  color: white;
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-mukana-coral px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#d44a40] active:scale-[.98];
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-mukana-ink/15 px-5 py-2.5 text-sm font-medium text-mukana-ink transition hover:bg-mukana-ink hover:text-white;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm text-mukana-ink/70 transition hover:text-mukana-ink;
+  }
+  .card {
+    @apply rounded-2xl bg-white shadow-card ring-1 ring-mukana-line/60;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full bg-mukana-warm px-3 py-1 text-xs font-medium text-mukana-ink/70 ring-1 ring-mukana-line;
+  }
+  .section {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+  }
+  .h-display {
+    @apply font-display text-3xl leading-tight tracking-tight sm:text-5xl;
+  }
+  .h-section {
+    @apply font-display text-2xl tracking-tight sm:text-3xl;
+  }
+  .label {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-mukana-ink/55;
+  }
+  .field {
+    @apply w-full rounded-xl border border-mukana-line bg-white px-4 py-2.5 text-sm text-mukana-ink placeholder:text-mukana-ink/35 focus:border-mukana-coral focus:outline-none focus:ring-2 focus:ring-mukana-coral/30;
+  }
+}
+
+/* Subtle paper grain */
+.bg-paper-grain {
+  background-image:
+    radial-gradient(rgba(26,26,26,0.035) 1px, transparent 1px),
+    radial-gradient(rgba(26,26,26,0.025) 1px, transparent 1px);
+  background-size: 22px 22px, 11px 11px;
+  background-position: 0 0, 11px 11px;
+}
+
+/* Auto-scrolling partner marquee (two copies translate -50% for a seamless loop) */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 24s linear infinite;
+  padding-inline-end: 1rem; /* keep the gap consistent at the loop seam */
+}
+.marquee-hover:hover .animate-marquee {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+    overflow-x: auto;
+  }
+}
+
+/* About page: when the pinned photo region is beneath the fixed nav, the nav
+   becomes transparent so the photo shows through it too. */
+body.photo-under-header header.fixed {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+/* Hide scrollbars while keeping scrollability (photo scrollers) */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

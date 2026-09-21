@@ -1,0 +1,12 @@
+# raw source assets from Google Drive (159MB) — not needed in the repo
+assets-src/
+# build artefacts & deps (also ignored per-project)
+node_modules/
+.next/
+dist/
+backend/data/
+.env
+.env*.local
+.DS_Store
+site-images/
+frontend/tsconfig.tsbuildinfo
