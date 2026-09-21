@@ -108,3 +108,16 @@ Mukana/
 5. **Admin token** — set a strong `ADMIN_TOKEN` env var on the backend.
 6. **Production run** — `cd frontend && npm run build && npm start` and
    `cd backend && npm run build && npm start`.
+
+## Deployment
+
+Live: **https://mukana-theta.vercel.app** (Vercel Hobby, Next.js app-router API routes)
+
+- **Database**: Supabase Postgres (project `mukana`, Singapore region)
+  - `DATABASE_URL` = Supabase transaction-pooler connection string
+  - schema auto-created on first request (`src/lib/pg.ts`), seeded via `node scripts/seed.mjs`
+- **Admin panel**: `/admin` on the deployed site — sign in with `ADMIN_TOKEN` (also set as env var on Vercel; keep it in sync with `.env.local`)
+- Deploy a new build manually: `cd frontend && npx vercel --prod --yes`
+- Auto-deploy on push: connect the repo in the Vercel dashboard (Settings → Git Integration)
+- The original Express backend (`backend/`) stays in the repo for reference and local
+  development; the deployed app serves its API through Next.js routes under `/api/*`
