@@ -127,7 +127,7 @@ export default function OrderPage() {
     <div>
       <header className="bg-paper-grain border-b border-mukana-line">
         <div className="section py-12">
-          <p className="chip">{t.nav.order}</p>
+          <p className="chip">{t.order.title}</p>
           <h1 className="h-display mt-4">{t.order.title}</h1>
           <p className="mt-3 max-w-xl text-mukana-ink/70">{t.order.subtitle}</p>
           <p className="mt-2 text-sm text-mukana-coral">{t.order.pickupOnlyNote}</p>
