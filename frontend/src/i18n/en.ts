@@ -182,6 +182,7 @@ export const en: Dict = {
       title: 'Pre-order confirmed!',
       body: 'Thanks for your order. Please collect at the chosen store on the chosen date and time, and pay in store.',
       code: 'Pickup code',
+      pin: 'Pickup PIN',
       saved: 'Save this code and show it to our staff at the counter.',
       backHome: 'Back to home',
     },

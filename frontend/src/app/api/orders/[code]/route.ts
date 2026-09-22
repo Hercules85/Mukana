@@ -8,7 +8,7 @@ export async function GET(_req: NextRequest, { params }: { params: { code: strin
     await initDb();
     const code = params.code.toUpperCase();
     const [order] = await sql()`
-      SELECT o.id, o.code, o.store_id, o.pickup_date, o.pickup_window, o.status, o.total_hkd, o.created_at,
+      SELECT o.id, o.code, o.store_id, o.pickup_date, o.pickup_window, o.status, o.total_hkd, o.pickup_pin, o.created_at,
              s.name_zh AS store_name
       FROM orders o JOIN stores s ON s.id = o.store_id
       WHERE o.code = ${code}`;

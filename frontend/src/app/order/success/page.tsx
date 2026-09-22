@@ -8,6 +8,7 @@ import Image from 'next/image';
 function SuccessInner() {
   const { t } = useT();
   const code = useSearchParams().get('code') ?? '';
+  const pin = useSearchParams().get('pin') ?? '';
 
   return (
     <div className="section flex flex-col items-center py-24 text-center">
@@ -24,6 +25,9 @@ function SuccessInner() {
       <div className="card mt-8 px-8 py-6">
         <p className="label">{t.order.success.code}</p>
         <p className="mt-2 font-display text-4xl tracking-[0.2em] text-mukana-coral">{code}</p>
+        {pin && (
+          <p className="mt-2 font-display text-2xl tracking-[0.4em] text-mukana-ink/80">{pin.split('').join(' ')}</p>
+        )}
         <p className="mt-3 text-xs text-mukana-ink/55">{t.order.success.saved}</p>
       </div>
       <div className="mt-8 flex gap-3">

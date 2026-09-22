@@ -63,6 +63,7 @@ export function initDb(): Promise<void> {
         customer_email TEXT NOT NULL,
         customer_note TEXT DEFAULT '',
         total_hkd INTEGER NOT NULL,
+        pickup_pin TEXT NOT NULL DEFAULT '',
         status TEXT NOT NULL DEFAULT 'pending',
         created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -74,6 +75,8 @@ export function initDb(): Promise<void> {
         qty INTEGER NOT NULL,
         unit_price_hkd INTEGER NOT NULL
       )`;
+      // migration for databases created before pickup_pin existed
+      await db`ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_pin TEXT NOT NULL DEFAULT ''`;
     })();
   }
   return ready;

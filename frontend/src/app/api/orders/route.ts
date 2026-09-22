@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql, initDb, makeCode } from '@/lib/pg';
+import { sendOrderConfirmation } from '@/lib/resend';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,10 +16,21 @@ type Body = {
   pickupWindow?: string;
   customer?: { name?: string; phone?: string; email?: string; note?: string };
   items?: OrderItemBody[];
+  locale?: string;
 };
+
+/** Human pickup-window ranges, mirroring WINDOWS_BY_RANGE on the order page */
+function windowRange(store: string, win: string): string {
+  const wide = store === 'apm'; // APM opens later, so evening runs to 22:00
+  const ranges = wide
+    ? { morning: '10:00 – 14:00', afternoon: '14:00 – 18:00', evening: '18:00 – 22:00' }
+    : { morning: '10:00 – 13:30', afternoon: '13:30 – 17:00', evening: '17:00 – 20:00' };
+  return ranges[win as keyof typeof ranges] ?? win;
+}
 
 export async function POST(req: NextRequest) {
   try {
+    await initDb();
     const body = (await req.json()) as Body;
 
     // ---- validation ----
@@ -60,11 +72,12 @@ export async function POST(req: NextRequest) {
     const email = c!.email!.trim();
     const note = (c!.note ?? '').trim();
     const code = makeCode();
+    const pin = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
     const inserted = await sql()`
       INSERT INTO orders (code, store_id, pickup_date, pickup_window,
-                          customer_name, customer_phone, customer_email, customer_note, total_hkd)
+                          customer_name, customer_phone, customer_email, customer_note, total_hkd, pickup_pin)
       VALUES (${code}, ${body.store!}, ${body.pickupDate!}, ${body.pickupWindow!},
-              ${name}, ${phone}, ${email}, ${note}, ${total})
+              ${name}, ${phone}, ${email}, ${note}, ${total}, ${pin})
       RETURNING id`;
     const orderId = Number(inserted[0].id);
     for (const it of priced) {
@@ -72,7 +85,39 @@ export async function POST(req: NextRequest) {
                  VALUES (${orderId}, ${it.productId}, ${it.qty}, ${it.unitPrice})`;
     }
 
-    return NextResponse.json({ ok: true, code, order: { id: orderId, status: 'pending', total } }, { status: 201 });
+    // ---- order confirmation email (best-effort, order already saved) ----
+    const locale = body.locale === 'en' ? 'en' : 'zh';
+    const [store] = await sql()`
+      SELECT id, name_zh, name_en, address_zh, address_en, phone
+      FROM stores WHERE id = ${body.store!}`;
+    const items = [];
+    for (const it of priced) {
+      const [p] = await sql()`SELECT name_zh, name_en FROM products WHERE id = ${it.productId}`;
+      items.push({ name_zh: String(p?.name_zh ?? it.productId), name_en: String(p?.name_en ?? it.productId), qty: it.qty, unitPrice: it.unitPrice });
+    }
+    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin).replace(/\/$/, '');
+    void sendOrderConfirmation(email, {
+      code,
+      pin,
+      locale,
+      customerName: name,
+      store: {
+        id: String(store?.id ?? body.store),
+        name_zh: String(store?.name_zh ?? ''),
+        name_en: String(store?.name_en ?? ''),
+        address_zh: String(store?.address_zh ?? ''),
+        address_en: String(store?.address_en ?? ''),
+        phone: String(store?.phone ?? ''),
+      },
+      pickupDate: body.pickupDate!,
+      pickupWindow: windowRange(body.store!, body.pickupWindow!),
+      items,
+      total,
+      logoUrl: `${siteUrl}/images/brand/icon.jpg`,
+      siteUrl,
+    });
+
+    return NextResponse.json({ ok: true, code, pin, order: { id: orderId, status: 'pending', total } }, { status: 201 });
   } catch (e) {
     return NextResponse.json({ error: 'server_error', detail: String(e) }, { status: 500 });
   }

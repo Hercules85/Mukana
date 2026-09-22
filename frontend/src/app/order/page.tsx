@@ -45,7 +45,7 @@ function nextDates(n: number): Date[] {
 }
 
 export default function OrderPage() {
-  const { t } = useT();
+  const { t, lang } = useT();
   const { lines, setQty, remove, clear, count } = useCart();
   const [store, setStore] = useState<Store | ''>('');
   const [date, setDate] = useState('');
@@ -101,10 +101,10 @@ export default function OrderPage() {
         pickupWindow: win,
         customer: { name: name.trim(), phone: phone.trim(), email: email.trim(), note: note.trim() },
         items: detailed.map((l) => ({ productId: l.id as string, qty: l.qty, unitPrice: l.p.price })),
-        locale: 'zh',
+        locale: lang,
       });
       clear();
-      window.location.href = `/order/success?code=${encodeURIComponent(res.code)}`;
+      window.location.href = `/order/success?code=${encodeURIComponent(res.code)}&pin=${encodeURIComponent(res.pin)}`;
     } catch {
       setError(t.order.errors.submit);
     } finally {

@@ -21,6 +21,7 @@ export type OrderPayload = {
 export type OrderResponse = {
   ok: boolean;
   code: string;
+  pin: string;
   order: {
     id: number;
     status: 'pending' | 'ready' | 'picked_up' | 'cancelled';
