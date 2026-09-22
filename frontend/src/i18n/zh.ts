@@ -9,7 +9,6 @@ export const zh = {
     merch: '商品',
     about: '關於我們',
     locations: '門市及銷售點',
-    order: '網上預訂',
     cart: '預訂清單',
     language: '語言',
   },

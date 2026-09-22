@@ -17,7 +17,6 @@ export function Header() {
     { href: '/merch', label: t.nav.merch },
     { href: '/about', label: t.nav.about },
     { href: '/locations', label: t.nav.locations },
-    { href: '/order', label: t.nav.order },
   ];
 
   const isActive = (href: string) => (href === '/' ? pathname === '/' : pathname.startsWith(href));
@@ -32,7 +31,7 @@ export function Header() {
             width={36}
             height={36}
             priority
-            className="h-9 w-9 rounded-full object-cover ring-1 ring-mukana-line"
+            className="h-9 w-9 object-cover"
           />
           <span className="font-display text-xl tracking-tight">MUKANA</span>
         </Link>

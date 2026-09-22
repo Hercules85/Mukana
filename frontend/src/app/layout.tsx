@@ -20,11 +20,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="zh-Hant">
-      <body className="min-h-screen bg-mukana-paper font-sans antialiased">
+      <body className="flex min-h-screen flex-col bg-mukana-paper font-sans antialiased">
         <LanguageProvider>
           <CartProvider>
             <Header />
-            <main className="pt-16">{children}</main>
+            <main className="flex-grow pt-16">{children}</main>
             <Footer />
           </CartProvider>
         </LanguageProvider>

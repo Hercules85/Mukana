@@ -15,7 +15,7 @@ export function Footer() {
               alt="Mukana"
               width={44}
               height={44}
-              className="h-11 w-11 rounded-full object-cover ring-1 ring-mukana-line"
+              className="h-11 w-11 object-cover"
             />
             <span className="font-display text-xl">MUKANA</span>
           </div>

@@ -11,7 +11,6 @@ export const en: Dict = {
     merch: 'Merch',
     about: 'About',
     locations: 'Locations',
-    order: 'Pre-order',
     cart: 'Basket',
     language: 'Language',
   },
