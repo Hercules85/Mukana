@@ -216,7 +216,7 @@ export default function OrderPage() {
                 >
                   <option value="">{store ? '—' : t.order.pickWindowFirst}</option>
                   {dates.map((d) => {
-                    const hours = STORE_HOURS[store as Store](d.getDay());
+                    const hours = store ? STORE_HOURS[store](d.getDay()) : null;
                     const disabled = !hours;
                     return (
                       <option key={d.toISOString()} value={d.toISOString().slice(0, 10)} disabled={disabled}>
