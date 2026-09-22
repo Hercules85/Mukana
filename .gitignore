@@ -10,3 +10,4 @@ backend/data/
 .DS_Store
 site-images/
 frontend/tsconfig.tsbuildinfo
+.env
